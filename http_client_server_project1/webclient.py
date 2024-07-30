@@ -3,11 +3,17 @@ import sys
 
 #Get the website from command line arguments
 if len(sys.argv) == 1:
-    target = "127.0.0.1"
+    target = '127.0.0.1'
     port = 20123
-else:
+elif len(sys.argv) > 1 and len(sys.argv) <= 3:
     target = sys.argv[1]
-    port = 80
+    if len(sys.argv) == 3:
+        port = int(sys.argv[2])
+    else:
+        port = 80
+else:
+    print("Usage: python webserver.py target port\n")
+    exit(-1)
 
 #Create the socket and request then encode the request into byte form.
 #We'll form the request with our own hands, like nature intended!
