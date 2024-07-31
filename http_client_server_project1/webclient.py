@@ -15,10 +15,20 @@ else:
     print("Usage: python webserver.py target port\n")
     exit(-1)
 
+#Request optional payload for post
+print("Please type payload (optional):")
+payload = input()
+print(payload)
+
 #Create the socket and request then encode the request into byte form.
 #We'll form the request with our own hands, like nature intended!
 s = socket.socket()
-request = "GET / HTTP/1.1\r\nHost: " + target + "\r\nConnection: close\r\n\r\n"
+if payload: # is Non-empty string
+    request = "POST / HTTP/1.1\r\nHost: " + target + "\r\nContent-Type: text/plain\r\n" \
+                "Content-Length: " + str(len(payload)) + "\r\nConnection: close\r\n\r\n" \
+                + payload + "\r\n\r\n"
+else:
+    request = "GET / HTTP/1.1\r\nHost: " + target + "\r\nConnection: close\r\n\r\n"
 encode_request = request.encode("ISO-8859-1")
 
 #Connect and then send the request

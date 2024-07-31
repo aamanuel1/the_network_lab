@@ -24,10 +24,21 @@ while True:
     print(new_conn[1]) #Print socket info.
 
     if eof is not None:
-        #At the end of the request, send this response. 
-        response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n"\
-                "Content-Length: 6\r\n"\
-                "Connection: close\r\n\r\nHello!\r\n\r\n"
+        d_str = d.decode("ISO-8859-1")
+        if "POST" in d_str:
+            print(d_str.split('\r\n\r\n'))
+            header, body= d_str.split('\r\n\r\n', 3) #list is [header, body, empty string]
+            body_len = str(len(body))
+
+            #Print custom response
+            response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n"\
+                    "Content-Length: {}\r\n"\
+                    "Connection: close\r\n\r\n{}\r\n\r\n".format(body_len, body)
+        else:
+            #At the end of the request, send this response. 
+            response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n"\
+                    "Content-Length: 6\r\n"\
+                    "Connection: close\r\n\r\nHello!\r\n\r\n"
         encode_response = response.encode("ISO-8859-1")
         new_socket.sendall(encode_response)
         new_socket.close()
