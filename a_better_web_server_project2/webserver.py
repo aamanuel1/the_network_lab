@@ -11,12 +11,10 @@ s = socket.socket()
 s.bind(('', port))
 s.listen()
 
-new_conn = s.accept()
-new_socket = new_conn[0]
-print(new_conn)
-
-
 while True:
+    new_conn = s.accept()
+    new_socket = new_conn[0]
+
     response = None
     encode_response = None
 
@@ -37,29 +35,31 @@ while True:
     path, filename = os.path.split(path)
 
     #Read and determine data type, then build header content type
-    filetype = os.path.splitext(path)
+    filetype = os.path.splitext(filename)[1]
     content_type = None
     if(filetype == ".txt"):
         content_type = "Content-Type: text/plain\r\n"
     elif(filetype == ".html"):
         content_type = "Content-Type: text/html\r\n"
 
+    print(content_type)
+
+    print("filename = {}".format(filename))
     #Read file and append to response
     #Build the response
     data = None
     try:
-        with open(filename, "rb") as fp:
+        with open(filename, "r") as fp:
             data = fp.read()
-            content_length = data.len()
+            content_length = len(data)
             response = "HTTP/1.1 200 OK\r\n"\
                     + content_type +\
-                    "Content-Length: {}\r\n".format(content_length) +\
-                    "Connection: close \r\n" +\
-                    data + "\r\n"
+                    "Content-Length: {}\r\n"\
+                    "Connection: close\r\n\r\n{}\r\n".format(content_length, data)
     except:
-        response = "HTTP/1.1 404 Not Found\r\nContent-Type:text/plain\r\n"\
+        response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n"\
         "Content-Length: 13\r\n"\
-        "Connection: close\r\n\r\n"
+        "Connection: close\r\n\r\n404 Not Found\r\n\r\n"
 
     print(response)
     
@@ -68,6 +68,5 @@ while True:
     #Send response
     new_socket.sendall(encode_response)
     new_socket.close()
-    new_conn = s.accept()
-    new_socket = new_conn[0]
+
 
