@@ -15,13 +15,9 @@ while True:
     new_conn = s.accept()
     new_socket = new_conn[0]
 
-    response = None
-    encode_response = None
-
     #Parse request header
     raw_request = new_socket.recv(4096)
     print(raw_request)
-    # eof = re.search("\r\n\r\n", d.decode("ISO-8859-1"))
     request = raw_request.decode("ISO-8859-1")
     eof = request.find("\r\n\r\n") 
     if(eof == -1):
@@ -41,22 +37,33 @@ while True:
         content_type = "Content-Type: text/plain\r\n"
     elif(filetype == ".html"):
         content_type = "Content-Type: text/html\r\n"
+    elif(filetype == ".jpg" or filetype == ".jpeg"):
+        content_type = "Content-Type: image/jpeg\r\n"
+    elif(filetype == ".gif"):
+        content_type = "Content-Type: image/gif\r\n"
+    else:
+        content_type = "application/octet-stream\r\n"
 
-    print(content_type)
-
-    print("filename = {}".format(filename))
     #Read file and append to response
     #Build the response
     data = None
+    response = None
+    encode_response = None
+    encode_response_payload = None
+    encode_response_end = None
     try:
-        with open(filename, "r") as fp:
+        with open(filename, "rb") as fp:
             data = fp.read()
             content_length = len(data)
             response = "HTTP/1.1 200 OK\r\n"\
                     + content_type +\
                     "Content-Length: {}\r\n"\
-                    "Connection: close\r\n\r\n{}\r\n".format(content_length, data)
-    except:
+                    "Connection: close\r\n\r\n".format(content_length, data)
+            #Remember that the file is already a bytestream "rb", then append\r\n. 
+            encode_response_payload = data
+            encode_response_end = "\r\n".encode("ISO-8859-1")
+    except Exception as e:
+        print(e)
         response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n"\
         "Content-Length: 13\r\n"\
         "Connection: close\r\n\r\n404 Not Found\r\n\r\n"
@@ -67,6 +74,10 @@ while True:
 
     #Send response
     new_socket.sendall(encode_response)
+    #If it isn't a 404 response, then we need the payload.
+    if encode_response_payload is not None:
+        new_socket.sendall(encode_response_payload)
+        new_socket.sendall(encode_response_end)
     new_socket.close()
 
 
