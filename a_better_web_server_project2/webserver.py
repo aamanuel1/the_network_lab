@@ -27,6 +27,26 @@ while True:
     header = request.split("\r\n")
     request_method, path, protocol, *others = header[0].split()
 
+    if(path == "/"):
+        listing = []
+        files = os.listdir()
+        remote_host, remote_port = new_socket.getsockname()
+        remote_port = "80"
+        website = "{}:{}".format(remote_host, remote_port)
+        for file in files:
+            webpath = os.path.join(website, file) + "\n"
+            listing.append(webpath)
+        directory_string = ''.join(listing)
+        directory_string_length = len(directory_string)
+        response = "HTTP/1.1 200 OK\r\n"\
+            "Content-Type: text/plain\r\n"\
+            "Content-Length: {}\r\n".format(directory_string_length)+\
+            "Connection: close\r\n\r\n{}\r\n".format(directory_string)
+        new_socket.sendall(response.encode())
+        new_socket.close()
+        continue
+
+
     #Strip the path
     path, filename = os.path.split(path)
 
