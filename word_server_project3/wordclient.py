@@ -23,6 +23,16 @@ def get_next_word_packet(s):
     global packet_buffer
 
     # TODO -- Write me!
+    while True:
+        #Complete packet case, extract the packet data, strip packet data
+        #Return the packet data
+
+        #receive more data
+
+        #Connection closed caes
+
+        #append to buffer
+        
 
 
 def extract_word(word_packet):
