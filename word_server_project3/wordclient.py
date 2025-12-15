@@ -28,20 +28,22 @@ def get_next_word_packet(s):
     is_connection_closed = False
     while True:
 
+        #The code will hang if we don't have a flag that says connection closed lol.
         if is_connection_closed is False:
             data = s.recv(4096)
         
         if data == b'':
             is_connection_closed = True
         
-        if len(data) != 0:
-            packet_buffer += data
+        #Gather data
+        packet_buffer += data
 
         if word_size == 0:
             word_size = int.from_bytes(packet_buffer[:WORD_LEN_SIZE], "big")
 
         packet_size = word_size + WORD_LEN_SIZE
 
+        #Parse and form packet from buffer
         if len(packet_buffer) >= packet_size:
             packet = packet_buffer[:packet_size]
             packet_buffer = packet_buffer[packet_size:]
@@ -65,7 +67,7 @@ def extract_word(word_packet):
     Returns the word decoded as a string.
     """
 
-    # DONE -- Write me!
+    #Chop up the word packet
     word_len_bytes = word_packet[:WORD_LEN_SIZE]
     word_len = int.from_bytes(word_len_bytes, "big")
     word_bytes = word_packet[WORD_LEN_SIZE:]
