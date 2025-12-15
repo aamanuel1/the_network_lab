@@ -22,16 +22,36 @@ def get_next_word_packet(s):
 
     global packet_buffer
 
-    # TODO -- Write me!
+    # DONE -- Write me!
+    word_size = 0
+    packet = b''
+    is_connection_closed = False
     while True:
-        #Complete packet case, extract the packet data, strip packet data
-        #Return the packet data
 
-        #receive more data
+        if is_connection_closed is False:
+            data = s.recv(4096)
+        
+        if data == b'':
+            is_connection_closed = True
+        
+        if len(data) != 0:
+            packet_buffer += data
 
-        #Connection closed caes
+        if word_size == 0:
+            word_size = int.from_bytes(packet_buffer[:WORD_LEN_SIZE], "big")
 
-        #append to buffer
+        packet_size = word_size + WORD_LEN_SIZE
+
+        if len(packet_buffer) >= packet_size:
+            packet = packet_buffer[:packet_size]
+            packet_buffer = packet_buffer[packet_size:]
+            word_size = 0
+            return packet
+
+        #If length of the data is 0 (no length) then flag as complete
+        #We should have sent the last packet before getting here.
+        if len(packet_buffer) == 0:
+            return None
         
 
 
@@ -45,7 +65,13 @@ def extract_word(word_packet):
     Returns the word decoded as a string.
     """
 
-    # TODO -- Write me!
+    # DONE -- Write me!
+    word_len_bytes = word_packet[:WORD_LEN_SIZE]
+    word_len = int.from_bytes(word_len_bytes, "big")
+    word_bytes = word_packet[WORD_LEN_SIZE:]
+    word = word_bytes.decode()
+
+    return word
 
 # Do not modify:
 
