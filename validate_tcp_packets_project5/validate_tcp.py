@@ -18,6 +18,24 @@ def create_ip_pseudoheader(ip_bytestrings, tcp_len_bytestring):
     ip_pseudoheader = ip_bytestrings[0] + ip_bytestrings[1] + zero_section + protocol + tcp_len_bytestring
     return ip_pseudoheader
 
+def compute_checksum(tcp_ip_pkt):
+    offset = 0
+    total = 0
+    words = []
+    while offset < len(tcp_ip_pkt):
+        word = tcp_ip_pkt[offset:offset + 2]
+        words.append(word)
+        offset += 2
+
+    for wd in words:
+        total += int.from_bytes(wd)
+        #get the ones complement sum and add the carry (carry-around)
+        total = (total & 0xffff) + (total >> 16)
+    
+    #Get the ones complement of the ones complement sum
+    checksum = (~total) & 0xffff
+    return checksum
+
 def main():
 
     tcp_addr_filenames = glob.glob('./tcp_data/tcp_addrs_[0-9].txt')
@@ -55,19 +73,7 @@ def main():
         #concatenate pseudo header with zeroed TCP data
         zeroed_tcp_ip_pkt = bytearray(ip_pseudoheader + tcp_zero_cksum)
 
-        offset = 0
-        total = 0
-        words = []
-        while offset < len(zeroed_tcp_ip_pkt):
-            word = zeroed_tcp_ip_pkt[offset:offset + 2]
-            words.append(word)
-            offset += 2
-
-        for wd in words:
-            total += int.from_bytes(wd)
-            total = (total & 0xffff) + (total >> 16)
-        
-        calc_checksum = (~total) & 0xffff
+        calc_checksum = compute_checksum(zeroed_tcp_ip_pkt)
 
         if tcp_checksum == calc_checksum:
             print("PASS")
