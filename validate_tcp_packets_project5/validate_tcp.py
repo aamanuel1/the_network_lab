@@ -1,4 +1,5 @@
 import sys
+import glob, re
 
 def ip_addr_to_bytestring(ip_addr):
     ip_addr_bytes = ip_addr.split(".")
@@ -18,62 +19,60 @@ def create_ip_pseudoheader(ip_bytestrings, tcp_len_bytestring):
     return ip_pseudoheader
 
 def main():
-    filename = "./tcp_data/tcp_addrs_0.txt"
 
-    #Read in the address file, split the address file line in two
-    with open(filename, 'r') as file:
-        ip_addr = file.readline().split()
+    tcp_addr_filenames = glob.glob('./tcp_data/tcp_addrs_[0-9].txt')
+    tcp_addr_filenames.sort()
+    # filename = "./tcp_data/tcp_addrs_0.txt"
 
-    #Change into bytestring
-    ip_addr_bytes = []
-    for ip in ip_addr:
-        ip_addr_bytes.append(ip_addr_to_bytestring(ip))
+    for file_no, tcp_addr_file in enumerate(tcp_addr_filenames):
+        #Read in the address file, split the address file line in two
+        with open(tcp_addr_file, 'r') as file:
+            ip_addr = file.readline().split()
+
+        #Change into bytestring
+        ip_addr_bytes = []
+        for ip in ip_addr:
+            ip_addr_bytes.append(ip_addr_to_bytestring(ip))
+
+        filename = "./tcp_data/tcp_data_" + str(file_no) + ".dat"
+        with open(filename, 'rb') as fp:
+            tcp_data = fp.read()
+            tcp_length = len(tcp_data)
+            tcp_length_bytestring = bytearray(tcp_length.to_bytes(2, "big"))
+
+        ip_pseudoheader = create_ip_pseudoheader(ip_addr_bytes, tcp_length_bytestring)   
     
-    filename = "./tcp_data/tcp_data_0.dat"
-    with open(filename, 'rb') as fp:
-        tcp_data = fp.read()
-        tcp_length = len(tcp_data)
-        tcp_length_bytestring = bytearray(tcp_length.to_bytes(2, "big"))
-    
-    ip_pseudoheader = create_ip_pseudoheader(ip_addr_bytes, tcp_length_bytestring)   
-    
-    #get the tcp checksum and turn it into a number for comparison
-    tcp_checksum = int.from_bytes(tcp_data[16:18], "big")
-    # tcp_checksum = int.from_bytes(tcp_checksum, "big")
-    # print(tcp_checksum)
-    # print(tcp_data)
+        #get the tcp checksum and turn it into a number for comparison
+        tcp_checksum = int.from_bytes(tcp_data[16:18], "big")
 
-    #insert 0 in byte 16-17 offset
-    tcp_zero_cksum = tcp_data[:16] + b'\x00\x00' + tcp_data[18:]
-    
-    #pad the packet if it's odd sized
-    if len(tcp_zero_cksum) % 2 == 1:
-        tcp_zero_cksum += b'\x00'
+        #insert 0 in byte 16-17 offset
+        tcp_zero_cksum = tcp_data[:16] + b'\x00\x00' + tcp_data[18:]
+        
+        #pad the packet if it's odd sized
+        if len(tcp_zero_cksum) % 2 == 1:
+            tcp_zero_cksum += b'\x00'
 
-    #concatenate pseudo header with zeroed TCP data
-    zeroed_tcp_ip_pkt = bytearray(ip_pseudoheader + tcp_zero_cksum)
-    print(zeroed_tcp_ip_pkt)
+        #concatenate pseudo header with zeroed TCP data
+        zeroed_tcp_ip_pkt = bytearray(ip_pseudoheader + tcp_zero_cksum)
 
-    offset = 0
-    total = 0
-    words = []
-    while offset < len(zeroed_tcp_ip_pkt):
-        word = zeroed_tcp_ip_pkt[offset:offset + 2]
-        words.append(word)
-        offset += 2
+        offset = 0
+        total = 0
+        words = []
+        while offset < len(zeroed_tcp_ip_pkt):
+            word = zeroed_tcp_ip_pkt[offset:offset + 2]
+            words.append(word)
+            offset += 2
 
-    for wd in words:
-        total += int.from_bytes(wd)
-        total = (total & 0xffff) + (total >> 16)
-    
-    calc_checksum = (~total) & 0xffff
-    print(tcp_checksum)
-    print(calc_checksum)
+        for wd in words:
+            total += int.from_bytes(wd)
+            total = (total & 0xffff) + (total >> 16)
+        
+        calc_checksum = (~total) & 0xffff
 
-    if tcp_checksum == calc_checksum:
-        print("PASS")
-    else:
-        print("FAIL")
+        if tcp_checksum == calc_checksum:
+            print("PASS")
+        else:
+            print("FAIL")
         
 if __name__ == "__main__":
     main()
