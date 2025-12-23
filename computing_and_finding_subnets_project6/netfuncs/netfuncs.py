@@ -104,7 +104,7 @@ def ips_same_subnet(ip1, ip2, slash):
     return: False
     """
 
-    # TODO -- write me!
+    
     pass
 
 def get_network(ip_value, netmask):
@@ -181,6 +181,7 @@ def my_tests():
     # print(ipv4_to_value("1.2.3.4"))
     # print(value_to_ipv4(16909060))
     print(get_subnet_mask_value("10.20.30.40/23"))
+    print(get_subnet_mask_value("/16"))
 
 
 ## -------------------------------------------
