@@ -123,8 +123,7 @@ def get_network(ip_value, netmask):
     return:   0x01020300
     """
 
-    # TODO -- write me!
-    pass
+    return ip_value & netmask
 
 def find_router_for_ip(routers, ip):
     """
@@ -188,15 +187,20 @@ def my_tests():
     # print(get_subnet_mask_value("10.20.30.40/23"))
     # print(get_subnet_mask_value("/16"))
 
-    ip1 = "10.23.121.17"
-    ip2 = "10.23.121.225"
-    slash = "/23"
-    print(ips_same_subnet(ip1, ip2, slash))
+    # ip1 = "10.23.121.17"
+    # ip2 = "10.23.121.225"
+    # slash = "/23"
+    # print(ips_same_subnet(ip1, ip2, slash))
 
-    ip3 = "10.23.230.22"
-    ip4 = "10.24.121.225"
-    slash2 = "/16"
-    print(ips_same_subnet(ip3, ip4, slash2))
+    # ip3 = "10.23.230.22"
+    # ip4 = "10.24.121.225"
+    # slash2 = "/16"
+    # print(ips_same_subnet(ip3, ip4, slash2))
+    
+    ip_value = 0x01020304
+    netmask = 0xffffff00
+    #return:   0x01020300
+    print(hex(get_network(ip_value, netmask)))
 
 
 ## -------------------------------------------
