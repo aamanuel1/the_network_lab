@@ -193,6 +193,11 @@ def my_tests():
     slash = "/23"
     print(ips_same_subnet(ip1, ip2, slash))
 
+    ip3 = "10.23.230.22"
+    ip4 = "10.24.121.225"
+    slash2 = "/16"
+    print(ips_same_subnet(ip3, ip4, slash2))
+
 
 ## -------------------------------------------
 ## Do not modify below this line
