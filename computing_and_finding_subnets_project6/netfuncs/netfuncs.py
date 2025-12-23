@@ -14,12 +14,10 @@ def ipv4_to_value(ipv4_addr):
     ipv4_addr: "1.2.3.4"
     return:    16909060  (Which is 0x01020304 hex)
     """
-
     ipv4_addr_list = ipv4_addr.split(".")
     value = 0
     mult = 24
     for v in ipv4_addr_list:
-        print(mult)
         value = value | (int(v) << mult)
         mult = mult - 8
 
@@ -41,8 +39,16 @@ def value_to_ipv4(addr):
     return: "1.2.3.4"
     """
 
-    # TODO -- write me!
-    pass
+    ip_v4_string = []
+    shift_by = 24
+    ip_numbers = range(4)
+    for i in ip_numbers:
+        ip_number = (addr >> shift_by) & 255
+        print(ip_number)
+        ip_v4_string.append(str(ip_number))
+        shift_by -= 8
+
+    return ".".join(ip_v4_string)
 
 def get_subnet_mask_value(slash):
     """
@@ -163,7 +169,13 @@ def my_tests():
     # print(x)
 
     # Add custom test code here
-    print(ipv4_to_value("255.255.0.0"))
+    test1 = "255.255.0.0"
+    print(ipv4_to_value(test1))
+    print(value_to_ipv4(4294901760))
+
+    print(ipv4_to_value("1.2.3.4"))
+    print(value_to_ipv4(16909060))
+
 
 ## -------------------------------------------
 ## Do not modify below this line
