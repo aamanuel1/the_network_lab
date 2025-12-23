@@ -164,8 +164,14 @@ def find_router_for_ip(routers, ip):
     return: None
     """
 
-    # TODO -- write me!
-    pass
+    router_same_subnet = None
+    # print(routers)
+    # print(routers.items())
+    for router, netmask in routers.items():
+        # print(router)
+        if ips_same_subnet(ip, router, netmask.get("netmask")):
+            router_same_subnet = router
+    return router_same_subnet
 
 # Uncomment this code to have it run instead of the real main.
 # Be sure to comment it back out before you submit!
@@ -197,10 +203,29 @@ def my_tests():
     # slash2 = "/16"
     # print(ips_same_subnet(ip3, ip4, slash2))
     
-    ip_value = 0x01020304
-    netmask = 0xffffff00
-    #return:   0x01020300
-    print(hex(get_network(ip_value, netmask)))
+    # ip_value = 0x01020304
+    # netmask = 0xffffff00
+    # #return:   0x01020300
+    # print(hex(get_network(ip_value, netmask)))
+    # routers = json.loads("routers: {\
+    #     \"1.2.3.1\": {\
+    #         \"netmask\": \"/24\"\
+    #     },\
+    #     \"1.2.4.1\": {\
+    #         \"netmask\": \"/24\"\
+    #     }\
+    # }\"")
+    routers = {
+        "1.2.3.1": {
+            "netmask": "/24"
+        },
+        "1.2.4.1": {
+            "netmask": "/24"
+        }
+    }
+    ip = "1.2.3.5"
+    #return: "1.2.3.1"
+    print(find_router_for_ip(routers, ip))
 
 
 ## -------------------------------------------
