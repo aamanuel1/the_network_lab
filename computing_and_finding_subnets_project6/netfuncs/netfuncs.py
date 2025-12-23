@@ -44,7 +44,7 @@ def value_to_ipv4(addr):
     ip_numbers = range(4)
     for i in ip_numbers:
         ip_number = (addr >> shift_by) & 255
-        print(ip_number)
+        # print(ip_number)
         ip_v4_string.append(str(ip_number))
         shift_by -= 8
 
@@ -173,10 +173,10 @@ def find_router_for_ip(routers, ip):
 # Uncomment this code to have it run instead of the real main.
 # Be sure to comment it back out before you submit!
 
-def my_tests():
-    print("-------------------------------------")
-    print("This is the result of my custom tests")
-    print("-------------------------------------")
+# def my_tests():
+#     print("-------------------------------------")
+#     print("This is the result of my custom tests")
+#     print("-------------------------------------")
 
     # print(x)
 
@@ -223,17 +223,17 @@ def my_tests():
     # ip = "1.2.3.5"
     # #return: "1.2.3.1"
 
-    routers = {
-        "1.2.3.1": {
-            "netmask": "/24"
-        },
-        "1.2.4.1": {
-            "netmask": "/24"
-        }
-    }
-    ip = "1.2.5.6"
-    # return: None
-    print(find_router_for_ip(routers, ip))
+    # routers = {
+    #     "1.2.3.1": {
+    #         "netmask": "/24"
+    #     },
+    #     "1.2.4.1": {
+    #         "netmask": "/24"
+    #     }
+    # }
+    # ip = "1.2.5.6"
+    # # return: None
+    # print(find_router_for_ip(routers, ip))
 
 
 ## -------------------------------------------
