@@ -68,9 +68,16 @@ def get_subnet_mask_value(slash):
     slash:  "10.20.30.40/23"
     return: 0xfffffe00 0b11111111111111111111111000000000 4294966784
     """
-
-    # TODO -- write me!
-    pass
+    ip, subnet, *_ = slash.split("/")
+    print(subnet)
+    subnet_mask = (1 << (int(subnet))) - 1
+    host = 32 - int(subnet)
+    print(host)
+    subnet_mask = subnet_mask << host
+    print(hex(subnet_mask))
+    print(bin(subnet_mask))
+    print(subnet_mask)
+    return subnet_mask 
 
 def ips_same_subnet(ip1, ip2, slash):
     """
@@ -169,12 +176,13 @@ def my_tests():
     # print(x)
 
     # Add custom test code here
-    test1 = "255.255.0.0"
-    print(ipv4_to_value(test1))
-    print(value_to_ipv4(4294901760))
+    # test1 = "255.255.0.0"
+    # print(ipv4_to_value(test1))
+    # print(value_to_ipv4(4294901760))
 
-    print(ipv4_to_value("1.2.3.4"))
-    print(value_to_ipv4(16909060))
+    # print(ipv4_to_value("1.2.3.4"))
+    # print(value_to_ipv4(16909060))
+    print(get_subnet_mask_value("10.20.30.40/23"))
 
 
 ## -------------------------------------------
