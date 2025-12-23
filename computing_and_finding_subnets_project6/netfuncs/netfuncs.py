@@ -165,10 +165,7 @@ def find_router_for_ip(routers, ip):
     """
 
     router_same_subnet = None
-    # print(routers)
-    # print(routers.items())
     for router, netmask in routers.items():
-        # print(router)
         if ips_same_subnet(ip, router, netmask.get("netmask")):
             router_same_subnet = router
     return router_same_subnet
@@ -215,6 +212,17 @@ def my_tests():
     #         \"netmask\": \"/24\"\
     #     }\
     # }\"")
+    # routers = {
+    #     "1.2.3.1": {
+    #         "netmask": "/24"
+    #     },
+    #     "1.2.4.1": {
+    #         "netmask": "/24"
+    #     }
+    # }
+    # ip = "1.2.3.5"
+    # #return: "1.2.3.1"
+
     routers = {
         "1.2.3.1": {
             "netmask": "/24"
@@ -223,8 +231,8 @@ def my_tests():
             "netmask": "/24"
         }
     }
-    ip = "1.2.3.5"
-    #return: "1.2.3.1"
+    ip = "1.2.5.6"
+    # return: None
     print(find_router_for_ip(routers, ip))
 
 
