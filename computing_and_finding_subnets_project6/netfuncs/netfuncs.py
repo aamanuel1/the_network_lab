@@ -103,9 +103,14 @@ def ips_same_subnet(ip1, ip2, slash):
     slash:  "/16"
     return: False
     """
-
+    ip_subnet_mask = get_subnet_mask_value(slash)
+    ip1_network_num = ipv4_to_value(ip1) & ip_subnet_mask
+    ip2_network_num = ipv4_to_value(ip2) & ip_subnet_mask
     
-    pass
+    if ip1_network_num == ip2_network_num:
+        return True
+
+    return False
 
 def get_network(ip_value, netmask):
     """
@@ -180,8 +185,13 @@ def my_tests():
 
     # print(ipv4_to_value("1.2.3.4"))
     # print(value_to_ipv4(16909060))
-    print(get_subnet_mask_value("10.20.30.40/23"))
-    print(get_subnet_mask_value("/16"))
+    # print(get_subnet_mask_value("10.20.30.40/23"))
+    # print(get_subnet_mask_value("/16"))
+
+    ip1 = "10.23.121.17"
+    ip2 = "10.23.121.225"
+    slash = "/23"
+    print(ips_same_subnet(ip1, ip2, slash))
 
 
 ## -------------------------------------------
