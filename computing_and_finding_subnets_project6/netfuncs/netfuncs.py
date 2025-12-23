@@ -44,7 +44,6 @@ def value_to_ipv4(addr):
     ip_numbers = range(4)
     for i in ip_numbers:
         ip_number = (addr >> shift_by) & 255
-        # print(ip_number)
         ip_v4_string.append(str(ip_number))
         shift_by -= 8
 
