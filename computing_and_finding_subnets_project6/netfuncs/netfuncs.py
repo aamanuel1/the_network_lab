@@ -15,8 +15,15 @@ def ipv4_to_value(ipv4_addr):
     return:    16909060  (Which is 0x01020304 hex)
     """
 
-    # TODO -- write me!
-    pass
+    ipv4_addr_list = ipv4_addr.split(".")
+    value = 0
+    mult = 24
+    for v in ipv4_addr_list:
+        print(mult)
+        value = value | (int(v) << mult)
+        mult = mult - 8
+
+    return value
 
 def value_to_ipv4(addr):
     """
@@ -147,16 +154,16 @@ def find_router_for_ip(routers, ip):
 
 # Uncomment this code to have it run instead of the real main.
 # Be sure to comment it back out before you submit!
-"""
+
 def my_tests():
     print("-------------------------------------")
     print("This is the result of my custom tests")
     print("-------------------------------------")
 
-    print(x)
+    # print(x)
 
     # Add custom test code here
-"""
+    print(ipv4_to_value("255.255.0.0"))
 
 ## -------------------------------------------
 ## Do not modify below this line
