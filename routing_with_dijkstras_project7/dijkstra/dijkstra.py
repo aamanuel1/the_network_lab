@@ -57,11 +57,7 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     for madness.
     """
 
-    # TODO Write me
     shortest_path = []
-    # slash = "/24"
-    # if netfuncs.ips_same_subnet(src_ip, dest_ip, slash):
-    #     return shortest_path
     
     dest_router = netfuncs.find_router_for_ip(routers, dest_ip)
     src_router = netfuncs.find_router_for_ip(routers, src_ip)
@@ -69,9 +65,67 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     if dest_router == src_router:
         return shortest_path
     
-    shortest_path = ["8.8.8.8"]
+    dist, parents = dijkstras(routers, src_router)
     
     return shortest_path
+
+def dijkstras(routers, src_router):
+    to_visit = set()
+    dist = dict()
+    parent = dict()
+
+    for router in routers:
+        dist[router] = math.inf
+        parent[router] = None
+        to_visit.add(router)
+
+    dist[src_router] = 0
+
+    print(to_visit)
+
+    for conn in to_visit:
+        if conn not in to_visit:
+            break
+
+        print(conn)
+        curr_node = find_min_dist(conn)
+        del to_visit[curr_node]
+
+        neighbours = conn.get("connections")
+        for neighbour in neighbours:
+            if neighbour not in to_visit:
+                continue
+
+            #might need to tune this for lean
+            alt = dist(curr_node) + neighbour.get("ad")
+            if alt < dist(neighbour):
+                dist[neighbour] = alt
+                parent[neighbour] = curr_node
+        
+    return dist, parent
+
+def find_min_dist(conn):
+
+    #TODO fix this search, conn is only a string why is that?
+    for c in conn:
+        min_dist = math.inf
+        min_conn = None
+        dist = c.get("ad")
+        if dist < min_dist:
+            min_dist = dist
+            min_conn = c
+    
+    return min_conn, min_dist
+
+def get_shortest_path(parent, src_node, dest_node):
+    
+    curr_node = dest_node
+    path = []
+    while curr_node != src_node:
+        path.append(curr_node)
+        curr_node = parent(curr_node)
+
+    return path.reverse()
 
 #------------------------------
 # DO NOT MODIFY BELOW THIS LINE
