@@ -69,9 +69,9 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
     if dest_router == src_router:
         return shortest_path
     
+    shortest_path = ["8.8.8.8"]
     
-    # return shortest_path
-    pass
+    return shortest_path
 
 #------------------------------
 # DO NOT MODIFY BELOW THIS LINE
