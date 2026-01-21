@@ -66,6 +66,8 @@ def dijkstras_shortest_path(routers, src_ip, dest_ip):
         return shortest_path
     
     dist, parents = dijkstras(routers, src_router)
+
+    shortest_path = get_shortest_path(parents, src_router, dest_router)
     
     return shortest_path
 
@@ -81,49 +83,74 @@ def dijkstras(routers, src_router):
 
     dist[src_router] = 0
 
-    print(to_visit)
+    # print(routers)
+    # print(routers.items())
 
-    for conn in to_visit:
-        if conn not in to_visit:
-            break
+    # conn = routers.get("router").get("connections")
+    # print (conn)
 
-        print(conn)
-        curr_node = find_min_dist(conn)
-        del to_visit[curr_node]
+    # for conn in to_visit:
+    #     if conn not in to_visit:
+    #         break
+    while len(to_visit) != 0:
 
-        neighbours = conn.get("connections")
-        for neighbour in neighbours:
+        # print(routers)
+        # conn_json = routers.get("connections")
+        # print(conn)
+        curr_node, curr_dist = find_min_dist(dist, to_visit)
+        to_visit.remove(curr_node)
+        # print(to_visit)
+        # print(curr_node)
+
+        # print(routers.get(curr_node))
+        
+        conn = routers.get(curr_node).get("connections")
+        # print(conn.items())
+
+        # neighbours = conn.get("connections")
+        for neighbour, neighbour_attr in conn.items():
+            # print(neighbour)
             if neighbour not in to_visit:
                 continue
 
             #might need to tune this for lean
-            alt = dist(curr_node) + neighbour.get("ad")
-            if alt < dist(neighbour):
+            alt = dist.get(curr_node) + neighbour_attr.get("ad")
+            if alt < dist[neighbour]:
                 dist[neighbour] = alt
                 parent[neighbour] = curr_node
         
     return dist, parent
 
-def find_min_dist(conn):
+def find_min_dist(dist, to_visit):
+    # print(dist)
+
+    min_dist = math.inf
+    min_conn = None
 
     #TODO fix this search, conn is only a string why is that?
-    for c in conn:
-        min_dist = math.inf
-        min_conn = None
-        dist = c.get("ad")
-        if dist < min_dist:
-            min_dist = dist
-            min_conn = c
+    for node, d in dist.items():
+
+        if node not in to_visit:
+            continue
+
+        if d < min_dist:
+            min_dist = d
+            min_conn = node
     
     return min_conn, min_dist
 
 def get_shortest_path(parent, src_node, dest_node):
+
+    # print(parent)
     
     curr_node = dest_node
     path = []
     while curr_node != src_node:
+        print(curr_node)
+        print(parent[curr_node])
         path.append(curr_node)
-        curr_node = parent(curr_node)
+        curr_node = parent[curr_node]
+
 
     return path.reverse()
 
