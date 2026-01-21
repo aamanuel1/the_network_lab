@@ -146,13 +146,13 @@ def get_shortest_path(parent, src_node, dest_node):
     curr_node = dest_node
     path = []
     while curr_node != src_node:
-        print(curr_node)
-        print(parent[curr_node])
+        # print(curr_node)
+        # print(parent[curr_node])
         path.append(curr_node)
         curr_node = parent[curr_node]
 
-
-    return path.reverse()
+    # print(path)
+    return list(reversed(path))
 
 #------------------------------
 # DO NOT MODIFY BELOW THIS LINE
