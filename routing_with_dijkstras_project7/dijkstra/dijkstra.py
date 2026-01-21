@@ -83,37 +83,18 @@ def dijkstras(routers, src_router):
 
     dist[src_router] = 0
 
-    # print(routers)
-    # print(routers.items())
-
-    # conn = routers.get("router").get("connections")
-    # print (conn)
-
-    # for conn in to_visit:
-    #     if conn not in to_visit:
-    #         break
     while len(to_visit) != 0:
 
-        # print(routers)
-        # conn_json = routers.get("connections")
-        # print(conn)
         curr_node, curr_dist = find_min_dist(dist, to_visit)
         to_visit.remove(curr_node)
-        # print(to_visit)
-        # print(curr_node)
-
-        # print(routers.get(curr_node))
         
         conn = routers.get(curr_node).get("connections")
-        # print(conn.items())
 
-        # neighbours = conn.get("connections")
         for neighbour, neighbour_attr in conn.items():
-            # print(neighbour)
             if neighbour not in to_visit:
                 continue
 
-            #might need to tune this for lean
+            #tuned for lean
             alt = dist.get(curr_node) + neighbour_attr.get("ad")
             if alt < dist[neighbour]:
                 dist[neighbour] = alt
@@ -122,12 +103,11 @@ def dijkstras(routers, src_router):
     return dist, parent
 
 def find_min_dist(dist, to_visit):
-    # print(dist)
 
     min_dist = math.inf
     min_conn = None
 
-    #TODO fix this search, conn is only a string why is that?
+    #Fixed, forgot to use .items()
     for node, d in dist.items():
 
         if node not in to_visit:
@@ -140,19 +120,18 @@ def find_min_dist(dist, to_visit):
     return min_conn, min_dist
 
 def get_shortest_path(parent, src_node, dest_node):
-
-    # print(parent)
     
     curr_node = dest_node
     path = []
     while curr_node != src_node:
-        # print(curr_node)
-        # print(parent[curr_node])
         path.append(curr_node)
         curr_node = parent[curr_node]
 
-    # print(path)
-    return list(reversed(path))
+    #It's reversed(list) not list.reverse(), kept returning none
+    path.append(src_node)
+    shortest_path = list(reversed(path))
+
+    return shortest_path
 
 #------------------------------
 # DO NOT MODIFY BELOW THIS LINE
