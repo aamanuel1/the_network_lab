@@ -16,30 +16,27 @@ def run_server(port):
 
     while True:
 
-        # print(read_set)
-        # print(listener_sock.fileno())
-
         ready_to_read, _, _ = select.select(read_set, {}, {})
 
         for the_socket in ready_to_read:
 
             if the_socket == listener_sock:
                 new_socket = the_socket.accept()
+                #You want to avoid using a tuple otherwise select doesn't think it has a fileno
                 read_set.add(new_socket[0])
-                # new_socket_peername = new_socket.getpeername()[0]
-                # print(new_socket.getpeername())
-                print(f'{new_socket}: connected')
+                print(f'{new_socket[1]}: connected')
                 the_socket.listen()
             else:
                 raw_data = the_socket.recv(4096)
 
                 if len(raw_data) == 0:
-                    print(f'{the_socket}: disconnected')
+                    #The socket is not subscriptable so you have to use getpeername() instead.
+                    print(f'{the_socket.getpeername()}: disconnected')
                     read_set.remove(the_socket)
                 else:
                     data_len = len(raw_data)
                     data = raw_data.decode()
-                    print(f'{the_socket} {data_len} bytes: {data}')
+                    print(f'{the_socket.getpeername()} {data_len} bytes: {data}')
 
 #--------------------------------#
 # Do not modify below this line! #
