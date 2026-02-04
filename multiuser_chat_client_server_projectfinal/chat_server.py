@@ -61,6 +61,8 @@ def run_server(port):
                     response_pkt = size + response
                     chatter_sock.sendall(response_pkt)
 
+                    #TODO disconnect logic.
+
 def broadcast_all(sockets, message):
     pass
 
@@ -76,6 +78,7 @@ def extract_message(chat_buffer, msg_length):
     return msg
 
 def parse_incoming_message(chatter_sock, chatters_name, message):
+    #TODO test message forming.
     message_json = json.loads(message)
     message_type = message_json["type"]
     response = ""
@@ -87,6 +90,7 @@ def parse_incoming_message(chatter_sock, chatters_name, message):
             size, response = create_join_message(nick)
             chatters_name[chatter_sock] = nick
         case "chat":
+            nick = message_json["nick"]
             size, response = create_chat_message(nick, message)
     response_bytes = response.encode()
     size_bytes = size.to_bytes(PKT_LEN_SIZE, "big")
@@ -102,11 +106,22 @@ def create_join_message(chatter_name):
     join_message_json = json.dumps(join_message_dict)
     return len(join_message_json), join_message_json
 
-def create_chat_message():
-    pass
+def create_chat_message(chatter_name, message):
+    chat_message_dict = {
+        "type": "chat",
+        "nick": f"{chatter_name}",
+        "message": f"{message}"
+    }
+    chat_message_json = json.dumps(chat_message_dict)
+    return len(chat_message_json), chat_message_json
 
-def create_leave_message():
-    pass
+def create_leave_message(chatter_name):
+    leave_message_dict = {
+        "type": "leave",
+        "nick": f"{chatter_name}"
+    }
+    leave_message_json = json.dumps(leave_message_dict)
+    return len(leave_message_json), leave_message_json
 
 def close_conn(socket, buffers):
     pass
