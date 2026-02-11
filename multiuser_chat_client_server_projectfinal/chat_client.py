@@ -12,7 +12,8 @@ def usage():
 def get_next_packet():
     pass
 
-def input():
+def chat_window():
+    #loop - get packets, extract and parse full message, then print message
     pass
 
 def create_hello_message():
@@ -34,7 +35,26 @@ def close_conn():
     pass
 
 def main(argv):
-    pass
+    try:
+        nick = argv[1]
+        host = argv[2]
+        port = int(argv[3])
+    except:
+        usage()
+        return 1
+    
+    #Connect to socket
+
+
+    #Start second thread with looping input()
+
+
+    #Create and send hello message
+
+    
+    #Main input loop - get message from user, package it into packets and send it 
+
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
