@@ -44,20 +44,22 @@ def run_server(port):
             if chatter_sock == listener_sock:
                 new_chatter = chatter_sock.accept()
                 chatters_sock.add(new_chatter[0])
-                chat_buffers[new_chatter] = b''
+                chat_buffers[new_chatter[0]] = b''
                 chatter_sock.listen()
 
             else:
-                get_next_packet(chatter_sock, chat_buffers, chatters_name)
+                get_next_packet(chatter_sock, chat_buffers)
                 pkt_size = int.from_bytes(chat_buffers[chatter_sock][:PKT_LEN_SIZE], "big")
                 pkt_total_length = pkt_size + PKT_LEN_SIZE
 
-                if len(chat_buffers[chatter_sock] >= pkt_total_length):
+                if len(chat_buffers[chatter_sock]) >= pkt_total_length:
                     # message_pkt = chat_buffers[chatter][:pkt_total_length]
                     chat_buffers[chatter_sock] = chat_buffers[chatter_sock][pkt_total_length:]
                     
                     message = extract_message(chat_buffers[chatter_sock], pkt_total_length)
-                    size, response = parse_incoming_message(chatter_sock, chatters_name, message)
+                    if message is None:
+                        continue
+                    response, size = parse_incoming_message(chatter_sock, chatters_name, message)
 
                     response_pkt = size.to_bytes(PKT_LEN_SIZE, "big") + response.encode()
                     broadcast_all(chatters_sock, response_pkt)
