@@ -16,8 +16,9 @@ def usage():
 def get_next_packet(socket, buffers):
     data = socket.recv(4096)
 
-    # if data == b'':
-    #     close_conn(socket, buffers)
+    if data == b'':
+        close_conn(socket, buffers)
+        return
 
     buffers[socket] += data
 
@@ -54,26 +55,36 @@ def run_server(port):
 
                 if len(chat_buffers[chatter_sock]) >= pkt_total_length:
                     # message_pkt = chat_buffers[chatter][:pkt_total_length]
-                    chat_buffers[chatter_sock] = chat_buffers[chatter_sock][pkt_total_length:]
+                    #Potential bug here.
                     
                     message = extract_message(chat_buffers[chatter_sock], pkt_total_length)
                     if message is None:
                         continue
                     response, size = parse_incoming_message(chatter_sock, chatters_name, message)
 
-                    response_pkt = size.to_bytes(PKT_LEN_SIZE, "big") + response.encode()
+                    response_pkt = bytearray()
+                    response_pkt.extend(size)
+                    response_pkt.extend(response)
                     broadcast_all(chatters_sock, response_pkt)
+                    chat_buffers[chatter_sock] = chat_buffers[chatter_sock][pkt_total_length:]
 
-                if len(chat_buffers[chatter_sock]) == 0:
-                    response_pkt = close_conn(chatter_sock, chatters_name)
-                    chatters_sock.remove(chatter_sock)
-                    chatters_name.remove(chatter_sock)
-                    broadcast_all(chatters_sock, response_pkt)
+                # if chat_buffers[chatter_sock] == b'':
+                #     response_pkt = close_conn(chatter_sock, chatters_name)
+                #     chatters_sock.remove(chatter_sock)
+                #     del chatters_name[chatter_sock]
+                #     broadcast_all(chatters_sock, response_pkt)
 
 def broadcast_all(sockets, packet):
-    
+    print(packet)
     for chatter in sockets:
-        chatter.sendall(packet)
+
+        try:
+            chatter.sendall(packet)
+        except Exception as e:
+            print(e)
+            continue
+        finally:
+            print(chatter)
 
 
 def extract_message(chat_buffer, msg_length):
@@ -95,11 +106,14 @@ def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
 
     match message_type:
         case "hello":
+            print("hello")
             nick = message_json["nick"]
             size, response = create_join_message(nick)
             chatters_name[chatter_sock] = nick
         case "chat":
-            nick = message_json["nick"]
+            # print(message_json)
+            # nick = message_json["nick"]
+            nick = chatters_name[chatter_sock]
             message = message_json["message"]
             size, response = create_chat_message(nick, message)
     response_bytes = response.encode()
@@ -136,7 +150,9 @@ def close_conn(socket, names):
     message_size, message = create_leave_message(name)
     message_size_bytes = message_size.to_bytes(PKT_LEN_SIZE, "big")
     message_bytes = message.encode()
-    close_conn_pkt = message_size_bytes + message_bytes
+    close_conn_pkt = bytearray()
+    close_conn_pkt.extend(message_size_bytes)
+    close_conn_pkt.extend(message_bytes)
     return close_conn_pkt
 
 def main(argv):
