@@ -19,6 +19,7 @@ def get_next_packet(socket, buffer):
 
 def chat_window(socket, buffer):
     #loop - get packets, extract and parse full message, then print message
+    # init_windows()
     pkt_size = None
     pkt_total_length = None
     while True:
@@ -29,6 +30,7 @@ def chat_window(socket, buffer):
 
         if len(buffer) >= pkt_total_length:
             message = extract_message(buffer, pkt_total_length)
+            print_message(message)
 
             if message is None:
                 continue
@@ -56,9 +58,9 @@ def create_chat_message(message):
 
 def create_pkt(message_dict):
     message_json = json.dumps(message_dict)
-    print_message(message_json)
+    # print_message(message_json)
     message_size = len(message_json)
-    print_message(str(message_size))
+    # print_message(str(message_size))
     message_bytes = message_json.encode()
     message_size_bytes = message_size.to_bytes(PKT_LEN_SIZE, "big")
     message_pkt = bytearray()
@@ -101,6 +103,9 @@ def broadcast_message():
 
 def close_conn(sock):
     sock.close()
+
+def output_window(sock, nick):
+    pass
 
 def main(argv):
     try:
