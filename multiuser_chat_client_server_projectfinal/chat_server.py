@@ -13,14 +13,16 @@ PKT_LEN_SIZE = 2
 def usage():
     print("usage: chat_server.py port", file=sys.stderr)
 
-def get_next_packet(socket, buffers):
+def get_next_packet(socket, names, buffers):
     data = socket.recv(4096)
 
     if data == b'':
-        close_conn(socket, buffers)
-        return
+        close_message = close_conn(socket, names)
+        return close_message
+    
 
     buffers[socket] += data
+    return None
 
 
 def run_server(port):
@@ -49,9 +51,16 @@ def run_server(port):
                 chatter_sock.listen()
 
             else:
-                get_next_packet(chatter_sock, chat_buffers)
+                message_flag = get_next_packet(chatter_sock, chatters_name, chat_buffers)
                 pkt_size = int.from_bytes(chat_buffers[chatter_sock][:PKT_LEN_SIZE], "big")
                 pkt_total_length = pkt_size + PKT_LEN_SIZE
+
+                if message_flag is not None:
+                    # response_pkt = close_conn(chatter_sock, chatters_name)
+                    chatters_sock.remove(chatter_sock)
+                    del chatters_name[chatter_sock]
+                    broadcast_all(chatters_sock, message_flag, listener_sock)
+
 
                 if len(chat_buffers[chatter_sock]) >= pkt_total_length:
                     # message_pkt = chat_buffers[chatter][:pkt_total_length]
@@ -65,26 +74,31 @@ def run_server(port):
                     response_pkt = bytearray()
                     response_pkt.extend(size)
                     response_pkt.extend(response)
-                    broadcast_all(chatters_sock, response_pkt)
+                    broadcast_all(chatters_sock, response_pkt, listener_sock)
                     chat_buffers[chatter_sock] = chat_buffers[chatter_sock][pkt_total_length:]
 
-                # if chat_buffers[chatter_sock] == b'':
+                # if len(chat_buffers[chatter_sock]) == 0:
                 #     response_pkt = close_conn(chatter_sock, chatters_name)
                 #     chatters_sock.remove(chatter_sock)
                 #     del chatters_name[chatter_sock]
-                #     broadcast_all(chatters_sock, response_pkt)
+                #     broadcast_all(chatters_sock, response_pkt, listener_sock)
 
-def broadcast_all(sockets, packet):
-    print(packet)
+def broadcast_all(sockets, packet, listener_sock):
     for chatter in sockets:
 
-        try:
-            chatter.sendall(packet)
-        except Exception as e:
-            print(e)
+        if chatter is listener_sock:
             continue
-        finally:
-            print(chatter)
+        
+        # print(f"{chatter}\n{packet}")
+        chatter.sendall(packet)
+
+        # try:
+        #     chatter.sendall(packet)
+        # except Exception as e:
+        #     print(e)
+        #     continue
+        # finally:
+        #     print(chatter)
 
 
 def extract_message(chat_buffer, msg_length):
@@ -94,7 +108,6 @@ def extract_message(chat_buffer, msg_length):
     
     msg_bytes = chat_buffer[PKT_LEN_SIZE:PKT_LEN_SIZE + msg_length]
     msg = msg_bytes.decode()
-
     return msg
 
 def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
@@ -106,7 +119,7 @@ def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
 
     match message_type:
         case "hello":
-            print("hello")
+            # print("hello")
             nick = message_json["nick"]
             size, response = create_join_message(nick)
             chatters_name[chatter_sock] = nick
