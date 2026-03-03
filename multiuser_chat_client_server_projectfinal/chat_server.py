@@ -33,9 +33,6 @@ def run_server(port):
     chatters_sock = set()
     chatters_sock.add(listener_sock)
     chatters_name = dict()
-
-    # base_packet_buffer = b''
-
     chat_buffers = dict()
 
     while True:
@@ -56,15 +53,12 @@ def run_server(port):
                 pkt_total_length = pkt_size + PKT_LEN_SIZE
 
                 if message_flag is not None:
-                    # response_pkt = close_conn(chatter_sock, chatters_name)
                     chatters_sock.remove(chatter_sock)
                     del chatters_name[chatter_sock]
                     broadcast_all(chatters_sock, message_flag, listener_sock)
 
 
                 if len(chat_buffers[chatter_sock]) >= pkt_total_length:
-                    # message_pkt = chat_buffers[chatter][:pkt_total_length]
-                    #Potential bug here.
                     
                     message = extract_message(chat_buffers[chatter_sock], pkt_total_length)
                     if message is None:
@@ -77,28 +71,13 @@ def run_server(port):
                     broadcast_all(chatters_sock, response_pkt, listener_sock)
                     chat_buffers[chatter_sock] = chat_buffers[chatter_sock][pkt_total_length:]
 
-                # if len(chat_buffers[chatter_sock]) == 0:
-                #     response_pkt = close_conn(chatter_sock, chatters_name)
-                #     chatters_sock.remove(chatter_sock)
-                #     del chatters_name[chatter_sock]
-                #     broadcast_all(chatters_sock, response_pkt, listener_sock)
-
 def broadcast_all(sockets, packet, listener_sock):
     for chatter in sockets:
 
         if chatter is listener_sock:
             continue
         
-        # print(f"{chatter}\n{packet}")
         chatter.sendall(packet)
-
-        # try:
-        #     chatter.sendall(packet)
-        # except Exception as e:
-        #     print(e)
-        #     continue
-        # finally:
-        #     print(chatter)
 
 
 def extract_message(chat_buffer, msg_length):
@@ -111,7 +90,6 @@ def extract_message(chat_buffer, msg_length):
     return msg
 
 def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
-    #TODO test message forming.
     message_json = json.loads(message_full_payload)
     message_type = message_json["type"]
     response = ""
@@ -119,13 +97,10 @@ def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
 
     match message_type:
         case "hello":
-            # print("hello")
             nick = message_json["nick"]
             size, response = create_join_message(nick)
             chatters_name[chatter_sock] = nick
         case "chat":
-            # print(message_json)
-            # nick = message_json["nick"]
             nick = chatters_name[chatter_sock]
             message = message_json["message"]
             size, response = create_chat_message(nick, message)
