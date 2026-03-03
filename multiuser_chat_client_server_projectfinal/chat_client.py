@@ -10,26 +10,33 @@ import threading
 
 PKT_LEN_SIZE = 2
 
+packet_buffer = b''
+
 def usage():
     print("usage: chat_client.py nick host port", file = sys.stderr)
 
-def get_next_packet(socket, buffer):
-    data = socket.recv(4096)
-    buffer += data
+def get_next_packet(sock):
+    global packet_buffer
+    data = sock.recv(4096)
+    packet_buffer += data
 
-def chat_window(socket, buffer):
+def chat_window(sock):
     #loop - get packets, extract and parse full message, then print message
-    # init_windows()
     pkt_size = None
     pkt_total_length = None
-    while True:
-        get_next_packet(socket, buffer)
-        if pkt_size is None:
-            pkt_size = int.from_bytes(buffer[:PKT_LEN_SIZE], "big")
-            pkt_total_length = pkt_size + PKT_LEN_SIZE
 
-        if len(buffer) >= pkt_total_length:
-            message = extract_message(buffer, pkt_total_length)
+    buffer = b''
+    
+    while True:
+        global packet_buffer
+        get_next_packet(sock)
+        if pkt_size is None:
+            pkt_size = int.from_bytes(packet_buffer[:PKT_LEN_SIZE], "big")
+            pkt_total_length = pkt_size + PKT_LEN_SIZE
+        
+        print_message(str(packet_buffer))
+        if len(packet_buffer) >= pkt_total_length:
+            message = extract_message(pkt_total_length)
             print_message(message)
 
             if message is None:
@@ -69,12 +76,15 @@ def create_pkt(message_dict):
     message_pkt = message_size_bytes + message_bytes
     return message_pkt
 
-def extract_message(buffer, msg_length):
-    if len(buffer) == 0:
+def extract_message(msg_length):
+    global packet_buffer
+    if len(packet_buffer) == 0:
         return None
     
-    msg_bytes = buffer[PKT_LEN_SIZE:PKT_LEN_SIZE + msg_length]
+    msg_bytes = packet_buffer[PKT_LEN_SIZE:PKT_LEN_SIZE + msg_length]
     msg = msg_bytes.decode()
+    print(msg)
+    packet_buffer = packet_buffer[PKT_LEN_SIZE + msg_length: ]
 
     return msg
 
@@ -120,14 +130,15 @@ def main(argv):
     s = socket.socket()
     s.connect((host, port))
 
-    buffer = b''
 
-    init_windows()
     #Start second thread with looping input()
     #Thread args has to be in a tuple for some reason.
-    input_thread = threading.Thread(target=chat_window, args=(s, buffer), daemon=True)
+    init_windows()
+
+    input_thread = threading.Thread(target=chat_window, args=(s,), daemon=True)
     input_thread.start()
 
+    init_windows()
     #Create and send hello message
     hello_message_pkt = create_hello_message(nick)
     s.sendall(hello_message_pkt)
