@@ -22,29 +22,29 @@ def get_next_packet(sock):
 
 def chat_window(sock):
     #loop - get packets, extract and parse full message, then print message
-    pkt_size = None
+    pkt_size = 0
     pkt_total_length = None
-
-    buffer = b''
     
     while True:
         global packet_buffer
         get_next_packet(sock)
-        if pkt_size is None:
+        if pkt_size == 0:
             pkt_size = int.from_bytes(packet_buffer[:PKT_LEN_SIZE], "big")
             pkt_total_length = pkt_size + PKT_LEN_SIZE
         
-        print_message(str(packet_buffer))
+        # print_message(str(packet_buffer))
         if len(packet_buffer) >= pkt_total_length:
             message = extract_message(pkt_total_length)
-            print_message(message)
+            pkt_size = 0
+            # print_message(message)
 
-            if message is None:
-                continue
+            # if message is None:
+            #     pkt_size = None
+            #     continue
 
             parse_incoming_message(message)
-            pkt_size = None
-            pkt_total_length = None
+            pkt_size = 0
+            pkt_total_length = 0
 
 
 def create_hello_message(nick):
@@ -83,7 +83,7 @@ def extract_message(msg_length):
     
     msg_bytes = packet_buffer[PKT_LEN_SIZE:PKT_LEN_SIZE + msg_length]
     msg = msg_bytes.decode()
-    print(msg)
+    # print(msg)
     packet_buffer = packet_buffer[PKT_LEN_SIZE + msg_length: ]
 
     return msg
@@ -95,7 +95,7 @@ def parse_incoming_message(message):
 
     match message_type:
         case "chat":
-            chat_message = message_json["chat"]
+            chat_message = message_json["message"]
             print_message(f"{sender_nick}: {chat_message}")
         case "join":
             print_message(f"*** {sender_nick} has joined the chat")
@@ -113,9 +113,6 @@ def broadcast_message():
 
 def close_conn(sock):
     sock.close()
-
-def output_window(sock, nick):
-    pass
 
 def main(argv):
     try:
