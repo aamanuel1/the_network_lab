@@ -10,6 +10,7 @@ import threading
 
 PKT_LEN_SIZE = 2
 
+#Need global packet buffer because we're using threads
 packet_buffer = b''
 
 def usage():
@@ -32,15 +33,9 @@ def chat_window(sock):
             pkt_size = int.from_bytes(packet_buffer[:PKT_LEN_SIZE], "big")
             pkt_total_length = pkt_size + PKT_LEN_SIZE
         
-        # print_message(str(packet_buffer))
         if len(packet_buffer) >= pkt_total_length:
             message = extract_message(pkt_total_length)
             pkt_size = 0
-            # print_message(message)
-
-            # if message is None:
-            #     pkt_size = None
-            #     continue
 
             parse_incoming_message(message)
             pkt_size = 0
@@ -65,9 +60,7 @@ def create_chat_message(message):
 
 def create_pkt(message_dict):
     message_json = json.dumps(message_dict)
-    # print_message(message_json)
     message_size = len(message_json)
-    # print_message(str(message_size))
     message_bytes = message_json.encode()
     message_size_bytes = message_size.to_bytes(PKT_LEN_SIZE, "big")
     message_pkt = bytearray()
@@ -83,7 +76,6 @@ def extract_message(msg_length):
     
     msg_bytes = packet_buffer[PKT_LEN_SIZE:PKT_LEN_SIZE + msg_length]
     msg = msg_bytes.decode()
-    # print(msg)
     packet_buffer = packet_buffer[PKT_LEN_SIZE + msg_length: ]
 
     return msg
@@ -107,9 +99,6 @@ def parse_special_input(command, sock):
     if command.strip() == "\\q":
         close_conn(sock)
         exit(0)
-
-def broadcast_message():
-    pass
 
 def close_conn(sock):
     sock.close()
@@ -139,7 +128,6 @@ def main(argv):
     #Create and send hello message
     hello_message_pkt = create_hello_message(nick)
     s.sendall(hello_message_pkt)
-    # print_message(str(hello_message_pkt))
     
     #Main input loop - get message from user, package it into packets and send it 
     while True:
@@ -156,7 +144,6 @@ def main(argv):
 
         chat_message_pkt = create_chat_message(command)
         s.sendall(chat_message_pkt)
-        # print_message(str(chat_message_pkt))
     
     end_windows()
 
