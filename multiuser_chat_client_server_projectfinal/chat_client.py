@@ -58,6 +58,15 @@ def create_chat_message(message):
     chat_pkt = create_pkt(chat_message_dict)
     return chat_pkt
 
+def create_emote_message(message):
+    emote_message = message[4:]
+    emote_message_dict = {
+        "type": "emote",
+        "message": f"{emote_message}"
+    }
+    emote_pkt = create_pkt(emote_message_dict)
+    return emote_pkt
+
 def create_pkt(message_dict):
     message_json = json.dumps(message_dict)
     message_size = len(message_json)
@@ -93,12 +102,21 @@ def parse_incoming_message(message):
             print_message(f"*** {sender_nick} has joined the chat")
         case "leave":
             print_message(f"*** {sender_nick} has left the chat")
+        case "emote":
+            emote_message = message_json["message"]
+            print_message(f"[{sender_nick} {emote_message}]")
 
 
 def parse_special_input(command, sock):
-    if command.strip() == "\\q":
+    cleaned_command = command.strip()
+    if cleaned_command == "/q":
         close_conn(sock)
         exit(0)
+    elif cleaned_command[0:4] == "/me ":
+        return create_emote_message(command)
+
+    return None
+
 
 def close_conn(sock):
     sock.close()
@@ -131,6 +149,7 @@ def main(argv):
     
     #Main input loop - get message from user, package it into packets and send it 
     while True:
+        special_message = None
         try:
             command = read_command(f"{nick}> ")
         except:
@@ -139,9 +158,13 @@ def main(argv):
         if command == "":
             continue
 
-        if command[0] == "\\":
-            parse_special_input(command, s)
+        if command[0] == "/":
+            special_message = parse_special_input(command, s)
 
+        if special_message is not None:
+            s.sendall(special_message)
+            continue
+            
         chat_message_pkt = create_chat_message(command)
         s.sendall(chat_message_pkt)
     

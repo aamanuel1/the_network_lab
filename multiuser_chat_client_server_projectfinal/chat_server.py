@@ -104,6 +104,10 @@ def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
             nick = chatters_name[chatter_sock]
             message = message_json["message"]
             size, response = create_chat_message(nick, message)
+        case "emote":
+            nick = chatters_name[chatter_sock]
+            message = message_json["message"]
+            size, response = create_emote_message(nick, message)
     response_bytes = response.encode()
     size_bytes = size.to_bytes(PKT_LEN_SIZE, "big")
     return response_bytes, size_bytes
@@ -124,6 +128,15 @@ def create_chat_message(chatter_name, message):
     }
     chat_message_json = json.dumps(chat_message_dict)
     return len(chat_message_json), chat_message_json
+
+def create_emote_message(chatter_name, message):
+    emote_message_dict = {
+        "type": "emote",
+        "nick": f"{chatter_name}",
+        "message": f"{message}"
+    }
+    emote_message_json = json.dumps(emote_message_dict)
+    return len(emote_message_json), emote_message_json
 
 def create_leave_message(chatter_name):
     leave_message_dict = {
