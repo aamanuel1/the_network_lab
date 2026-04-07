@@ -64,12 +64,22 @@ def run_server(port):
                     if message is None:
                         continue
                     response, size = parse_incoming_message(chatter_sock, chatters_name, message)
-
-                    response_pkt = bytearray()
-                    response_pkt.extend(size)
-                    response_pkt.extend(response)
-                    broadcast_all(chatters_sock, response_pkt, listener_sock)
                     chat_buffers[chatter_sock] = chat_buffers[chatter_sock][pkt_total_length:]
+                    if response is None:
+                        continue
+
+                    response_pkt = create_response_pkt(response, size)
+                    broadcast_all(chatters_sock, response_pkt, listener_sock)
+
+
+def create_response_pkt(response, size):
+    response_bytes = response.encode()
+    size_bytes = size.to_bytes(PKT_LEN_SIZE, "big")
+
+    response_pkt = bytearray()
+    response_pkt.extend(size_bytes)
+    response_pkt.extend(response_bytes)
+    return response_pkt
 
 def broadcast_all(sockets, packet, listener_sock):
     for chatter in sockets:
@@ -79,6 +89,9 @@ def broadcast_all(sockets, packet, listener_sock):
         
         chatter.sendall(packet)
 
+def broadcast(socks, packet):
+    for sock in socks:
+        sock.sendall(packet)
 
 def extract_message(chat_buffer, msg_length):
 
@@ -108,9 +121,24 @@ def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
             nick = chatters_name[chatter_sock]
             message = message_json["message"]
             size, response = create_emote_message(nick, message)
-    response_bytes = response.encode()
-    size_bytes = size.to_bytes(PKT_LEN_SIZE, "big")
-    return response_bytes, size_bytes
+        case "dm":
+            send_to = message_json["send_to"]
+            message = message_json["message"]
+            send_to_sock = [k for k, v in chatters_name.items() if v == send_to]
+            if not send_to_sock:
+                error_msg_size, error_msg = create_error_message(f"{send_to} is not currently in chatroom.")
+                error_pkt = create_response_pkt(error_msg, error_msg_size)
+                broadcast([chatter_sock], error_pkt)
+                return None, None
+            nick = chatters_name[chatter_sock]
+            size, response = create_dm(nick, send_to, message)
+            dm_pkt = create_response_pkt(response, size)
+            broadcast([chatter_sock], dm_pkt)
+            broadcast(send_to_sock, dm_pkt)
+
+            return None, None
+
+    return response, size
 
 def create_join_message(chatter_name):
     join_message_dict = {
@@ -137,6 +165,25 @@ def create_emote_message(chatter_name, message):
     }
     emote_message_json = json.dumps(emote_message_dict)
     return len(emote_message_json), emote_message_json
+
+def create_dm(chatter_name, send_to_name, message):
+    dm_dict = {
+        "type": "dm",
+        "nick": f"{chatter_name}",
+        "recv_nick": f"{send_to_name}",
+        "message": f"{message}"
+    }
+    dm_message_json = json.dumps(dm_dict)
+    return len(dm_message_json), dm_message_json
+
+def create_error_message(message):
+    error_dict = {
+        "type": "error",
+        "nick": "N/A",
+        "message": f"{message}"
+    }
+    error_message_json = json.dumps(error_dict)
+    return len(error_message_json), error_message_json
 
 def create_leave_message(chatter_name):
     leave_message_dict = {

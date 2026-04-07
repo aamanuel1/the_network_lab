@@ -67,6 +67,18 @@ def create_emote_message(message):
     emote_pkt = create_pkt(emote_message_dict)
     return emote_pkt
 
+def create_dm(message):
+    split_message = message.split(" ", 2)
+    send_to = split_message[1]
+    dm_message = split_message[2]
+    dm_dict = {
+        "type": "dm",
+        "send_to": f"{send_to}",
+        "message": f"{dm_message}"
+    }
+    dm_pkt = create_pkt(dm_dict)
+    return dm_pkt
+
 def create_pkt(message_dict):
     message_json = json.dumps(message_dict)
     message_size = len(message_json)
@@ -105,6 +117,13 @@ def parse_incoming_message(message):
         case "emote":
             emote_message = message_json["message"]
             print_message(f"[{sender_nick} {emote_message}]")
+        case "dm":
+            receiver_nick = message_json["recv_nick"]
+            dm_message = message_json["message"]
+            print_message(f"{sender_nick} -> {receiver_nick}: {dm_message}")
+        case "error":
+            error_message = message_json["message"]
+            print_message(f"Message could not be sent: {error_message}")
 
 
 def parse_special_input(command, sock):
@@ -114,6 +133,8 @@ def parse_special_input(command, sock):
         exit(0)
     elif cleaned_command[0:4] == "/me ":
         return create_emote_message(command)
+    elif cleaned_command[0:9] == "/message ":
+        return create_dm(command)
 
     return None
 
