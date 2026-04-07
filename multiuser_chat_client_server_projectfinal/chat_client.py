@@ -79,6 +79,13 @@ def create_dm(message):
     dm_pkt = create_pkt(dm_dict)
     return dm_pkt
 
+def create_list_request():
+    list_request_dict = {
+        "type": "list"
+    }
+    list_request_pkt = create_pkt(list_request_dict)
+    return list_request_pkt
+
 def create_pkt(message_dict):
     message_json = json.dumps(message_dict)
     message_size = len(message_json)
@@ -124,6 +131,10 @@ def parse_incoming_message(message):
         case "error":
             error_message = message_json["message"]
             print_message(f"Message could not be sent: {error_message}")
+        case "list":
+            list_message = message_json["message"]
+            user_count = message_json["user_count"]
+            print_message(f"No. of Users: {user_count}\nUsers: {list_message}")
 
 
 def parse_special_input(command, sock):
@@ -135,6 +146,8 @@ def parse_special_input(command, sock):
         return create_emote_message(command)
     elif cleaned_command[0:9] == "/message ":
         return create_dm(command)
+    elif cleaned_command[0:5] == "/list":
+        return create_list_request()
 
     return None
 

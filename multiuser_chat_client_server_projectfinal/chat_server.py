@@ -135,7 +135,12 @@ def parse_incoming_message(chatter_sock, chatters_name, message_full_payload):
             dm_pkt = create_response_pkt(response, size)
             broadcast([chatter_sock], dm_pkt)
             broadcast(send_to_sock, dm_pkt)
-
+            return None, None
+        case "list":
+            nick = chatters_name[chatter_sock]
+            list_msg_size, list_msg = create_list(nick, chatters_name)
+            list_pkt = create_response_pkt(list_msg, list_msg_size)
+            broadcast([chatter_sock], list_pkt)
             return None, None
 
     return response, size
@@ -184,6 +189,30 @@ def create_error_message(message):
     }
     error_message_json = json.dumps(error_dict)
     return len(error_message_json), error_message_json
+
+def create_list(requester_nick, chatters_name):
+    user_count = 0
+    user_list = []
+    for k, v in chatters_name.items():
+
+        if(v == requester_nick):
+            v_you = v + " <-(you)"
+            user_list.append(v_you)
+        else:
+            user_list.append(v)
+        
+        user_count += 1
+    
+    user_list_string = ", ".join(user_list)
+
+    list_message_dict = {
+        "type": "list",
+        "nick": f"{requester_nick}",
+        "user_count": f"{user_count}",
+        "message": f"{user_list_string}"
+    }
+    list_message_json = json.dumps(list_message_dict)
+    return len(list_message_json), list_message_json
 
 def create_leave_message(chatter_name):
     leave_message_dict = {
